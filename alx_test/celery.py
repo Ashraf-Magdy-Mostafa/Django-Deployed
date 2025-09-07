@@ -1,5 +1,5 @@
 import os
-from celery import Celery
+from alx_test.celery import Celery
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
 

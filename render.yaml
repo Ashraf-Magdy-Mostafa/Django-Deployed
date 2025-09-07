@@ -37,7 +37,22 @@ services:
           type: redis
           name: cache
           property: connectionString
-      *shared_email_env
+      # Email vars (anchor defined here)
+      - &EMAIL_HOST
+        key: EMAIL_HOST
+        value: "smtp-relay.brevo.com"
+      - &EMAIL_PORT
+        key: EMAIL_PORT
+        value: "587"
+      - &EMAIL_HOST_USER
+        key: EMAIL_HOST_USER
+        sync: false
+      - &EMAIL_HOST_PASSWORD
+        key: EMAIL_HOST_PASSWORD
+        sync: false
+      - &DEFAULT_FROM_EMAIL
+        key: DEFAULT_FROM_EMAIL
+        value: "no-reply@example.com"
 
   - type: worker
     name: celery-worker
@@ -62,7 +77,12 @@ services:
           type: redis
           name: cache
           property: connectionString
-      *shared_email_env
+      # Reuse email vars via alias
+      - *EMAIL_HOST
+      - *EMAIL_PORT
+      - *EMAIL_HOST_USER
+      - *EMAIL_HOST_PASSWORD
+      - *DEFAULT_FROM_EMAIL
 
 databases:
   - name: pg
