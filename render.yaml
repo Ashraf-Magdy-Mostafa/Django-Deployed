@@ -1,3 +1,16 @@
+# Shared email environment variables
+sharedEmailEnv: &shared_email_env
+  - key: EMAIL_HOST
+    value: "smtp-relay.brevo.com"
+  - key: EMAIL_PORT
+    value: "587"
+  - key: EMAIL_HOST_USER
+    sync: false
+  - key: EMAIL_HOST_PASSWORD
+    sync: false
+  - key: DEFAULT_FROM_EMAIL
+    value: "no-reply@example.com"
+
 services:
   - type: web
     name: django-web
@@ -24,17 +37,7 @@ services:
           type: redis
           name: cache
           property: connectionString
-      # Optional email vars:
-      - key: EMAIL_HOST
-        value: "smtp-relay.brevo.com"
-      - key: EMAIL_PORT
-        value: "587"
-      - key: EMAIL_HOST_USER
-        sync: false
-      - key: EMAIL_HOST_PASSWORD
-        sync: false
-      - key: DEFAULT_FROM_EMAIL
-        value: "no-reply@example.com"
+      *shared_email_env
 
   - type: worker
     name: celery-worker
@@ -45,10 +48,7 @@ services:
     startCommand: celery -A config worker -l info --concurrency=1
     envVars:
       - key: DJANGO_SECRET_KEY
-        fromService:
-          type: web
-          name: django-web
-          property: env.DJANGO_SECRET_KEY
+        generateValue: true
       - key: DJANGO_DEBUG
         value: "False"
       - key: ALLOWED_HOSTS
@@ -62,40 +62,12 @@ services:
           type: redis
           name: cache
           property: connectionString
-      # email vars if tasks send mail:
-      - key: EMAIL_HOST
-        fromService:
-          type: web
-          name: django-web
-          property: env.EMAIL_HOST
-      - key: EMAIL_PORT
-        fromService:
-          type: web
-          name: django-web
-          property: env.EMAIL_PORT
-      - key: EMAIL_HOST_USER
-        fromService:
-          type: web
-          name: django-web
-          property: env.EMAIL_HOST_USER
-      - key: EMAIL_HOST_PASSWORD
-        fromService:
-          type: web
-          name: django-web
-          property: env.EMAIL_HOST_PASSWORD
-      - key: DEFAULT_FROM_EMAIL
-        fromService:
-          type: web
-          name: django-web
-          property: env.DEFAULT_FROM_EMAIL
+      *shared_email_env
 
 databases:
   - name: pg
     plan: free
 
-# Managed Redis cache/broker
-# (Set "ipAllowList: []" so it’s private to your Render services)
-# Render populates the connection string used above via env var mapping.
 ---
 type: redis
 name: cache
